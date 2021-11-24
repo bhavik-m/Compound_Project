@@ -18,8 +18,10 @@ contract CompoundSample {
     function supplyERC20(uint256 amount) external {
         CErc20 ctoken = CErc20(_ctoken);
         IERC20 token = IERC20(_token);
+        
         token.transferFrom(msg.sender, address(this), amount);
         token.approve(_ctoken, amount);
+
         uint256 before_ctoken_balance = ctoken.balanceOf(address(this));
         require(ctoken.mint(amount) == 0, "mint failed");
         uint256 after_ctoken_balance = ctoken.balanceOf(address(this));
@@ -31,8 +33,18 @@ contract CompoundSample {
         ctoken.mint{value: msg.value}();
     }
 
-    function withdrawERC20() external {
+    function withdrawERC20(uint256 ctoken_amount) external {
         CErc20 ctoken = CErc20(_ctoken);
         IERC20 token = IERC20(_token);
+        require(ctoken.redeem(ctoken_amount) == 0, "redeem failed");
+        token.transfer(msg.sender, token.balanceOf(address(this)));
     }
+
+    function withdrawEth(uint ctoken_amount) external {
+       CEth ctoken = CEth(_ctoken);
+       require(ctoken.redeem() == 0);
+
+    }
+
+    function borrowERC20()
 }
