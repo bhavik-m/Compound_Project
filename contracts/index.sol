@@ -4,19 +4,18 @@ pragma solidity ^0.8.3;
 
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./interfaces/compound.sol";
 
-contract CompoundSample {
+contract Compound_middleware {
     // ether
-    address eth_contract_address;
+
     address comptroller_address = 0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B;
     address pricefeed_address = 0x922018674c12a7F0D394ebEEf9B58F186CdE13c1;
-    // address _ctoken;
-    // address _token;
     uint256 ctoken_balance = 0;
-    uint256 token_balance = 0;
 
+    // supply to compound
+
+    // ERC20
     function supplyERC20(
         uint256 amount,
         address _ctoken,
@@ -24,7 +23,6 @@ contract CompoundSample {
     ) external {
         CErc20 ctoken = CErc20(_ctoken);
         IERC20 token = IERC20(_token);
-
         token.transferFrom(msg.sender, address(this), amount);
         token.approve(_ctoken, amount);
 
@@ -34,11 +32,13 @@ contract CompoundSample {
         ctoken_balance = after_ctoken_balance - before_ctoken_balance;
     }
 
+    // ETH
     function supplyeth(address _ctoken) external payable {
-        CEth ctoken = CEth(_ctoken);
-
-        ctoken.mint{value: msg.value}();
+        CEth cEth = CEth(_ctoken);
+        cEth.mint{value: msg.value}();
     }
+
+    // withdraw asset from compound
 
     function withdrawERC20(
         address _ctoken,
@@ -48,7 +48,7 @@ contract CompoundSample {
         CErc20 ctoken = CErc20(_ctoken);
         IERC20 token = IERC20(_token);
 
-        require(token_balance >= ctoken_amount, "choose lower _amount value");
+        require(ctoken_balance >= ctoken_amount, "choose lower _amount value");
         require(ctoken.approve(_ctoken, ctoken_amount), "Approve Failed");
         require(ctoken.redeem(ctoken_amount) == 0, "redeem failed");
         token.transfer(msg.sender, token.balanceOf(address(this)));
@@ -62,6 +62,8 @@ contract CompoundSample {
         (bool sent, ) = msg.sender.call{value: address(this).balance}("");
         require(sent, "Failed to send Ether");
     }
+
+    // Borrow from compound
 
     function borrowERC20(
         address _token,
@@ -122,6 +124,8 @@ contract CompoundSample {
         (bool sent, ) = msg.sender.call{value: address(this).balance}("");
         require(sent, "Failed to borrow Ether");
     }
+
+    // Repay Borrow to compound
 
     function paybackBorrowERC20(
         address _ctoken,
