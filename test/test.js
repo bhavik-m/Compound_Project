@@ -5,7 +5,7 @@ const { ethers } = require("hardhat");
 describe("Compound-testing", function () {
   let myCompound, compound, owner;
 
-  const {DAI, CDAI, CETH, DUMMY_USER} = process.env;
+  const { DAI, CDAI, CETH, DUMMY_USER } = process.env;
 
   function set_balance(_address) {
     network.provider.send("hardhat_setBalance", [
@@ -13,26 +13,26 @@ describe("Compound-testing", function () {
       ethers.utils.parseEther('10.0').toHexString()
     ]);
   }
-  
+
   // function impersonate_account() {
   //   const tokenArtifact = await artifacts.readArtifact("IERC20");
   //   const token = new ethers.Contract(DAI, tokenArtifact.abi, ethers.provider);
   //   const signer = token.connect(owner);
-  
+
   //   await hre.network.provider.request({
   //     method: "hardhat_impersonateAccount",
   //     params: [DUMMY_USER],
   //   });
-  
+
   //   const signer = await ethers.getSigner(DUMMY_USER);
-  
+
   //   await token.connect(signer).transfer(owner.address, ethers.utils.parseUnits("0.000001", 18));
-  
+
   //   await hre.network.provider.request({
   //       method: "hardhat_stopImpersonatingAccount",
   //       params: [DUMMY_USER],
   //   });
-  
+
   //   await signer.approve(compound.address, ethers.utils.parseUnits("0.000001", 18));
   // }
 
@@ -40,7 +40,7 @@ describe("Compound-testing", function () {
     beforeEach(async () => {
       myCompound = await ethers.getContractFactory("CompoundSample");
       compound = await myCompound.deploy();
-      [owner, add1, add2] = await ethers.getSigners();   
+      [owner, add1, add2] = await ethers.getSigners();
       await compound.deployed();
     });
 
@@ -51,14 +51,14 @@ describe("Compound-testing", function () {
     it('Should supply and withdraw Eth to/from Compound', async () => {
       set_balance(owner.address);
 
-      await compound.supplyEthToCompound(CETH, {value: ethers.utils.parseEther('1.0').toHexString()});
+      await compound.supplyEthToCompound(CETH, { value: ethers.utils.parseEther('1.0').toHexString() });
       console.log("Eth supplied successfully");
 
       await compound.withdrawEth(3000, CETH);
       console.log("Ether Withdrawn successfully");
     }).timeout(100000);
 
-    it('Should borrow and repay Eth', async () => {  
+    it('Should borrow and repay Eth', async () => {
       set_balance(DUMMY_USER);
       set_balance(owner.address);
       impersonate_account();
@@ -69,7 +69,7 @@ describe("Compound-testing", function () {
       await compound.borrowEth(CETH, CDAI, 100);
       console.log("Eth Borrowed");
 
-      await compound.EthRepayBorrow(CETH, {value: 100});
+      await compound.EthRepayBorrow(CETH, { value: 100 });
       console.log("Eth repayed");
     }).timeout(100000);
   });
